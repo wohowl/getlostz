@@ -1,0 +1,51 @@
+ # Copyright (C) 2026 ProjectNative
+ # This program is free software; you can redistribute it and/or modify
+ # it under the terms of the GNU General Public License version 2 only,
+ # as published by the Free Software Foundation.
+
+CC = clang
+CFLAGS = -Wall -Wextra
+
+arch ?= x64
+build ?= stable
+
+ifeq ($(arch), x64)
+    ARCH_DIR = x64
+else ifeq ($(arch), x86)
+    ARCH_DIR = x86
+else
+    $(error Unsupported architecture: $(arch). Use x64 or x86)
+endif
+
+ifeq ($(build), stable)
+    BUILD_DIR = stable
+else ifeq ($(build), dev)
+    BUILD_DIR = dev
+else
+    $(error Unsupported build type: $(build). Use stable or dev)
+endif
+
+SRC_DIR = ./linux-$(ARCH_DIR)/$(BUILD_DIR)
+BIN_DIR = ./bin/linux-$(ARCH_DIR)/$(BUILD_DIR)
+TARGET = $(BIN_DIR)/getlostz
+
+SOURCES = $(SRC_DIR)/main.c
+OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(BIN_DIR)/%.o)
+
+$(shell mkdir -p $(BIN_DIR))
+
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CC) -o $@ $^
+
+$(BIN_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+clean:
+	rm -rf $(BIN_DIR)
+
+clean-all:
+	rm -rf ./bin/linux-$(ARCH_DIR)
+
+.PHONY: all clean clean-all
